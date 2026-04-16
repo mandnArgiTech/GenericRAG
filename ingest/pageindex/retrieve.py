@@ -16,21 +16,36 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger("ingest.pageindex.retrieve")
 
 
+_MAX_PAGES_PER_REQUEST = 50  # guard against "1-99999" style abuse
+
+
 def _parse_pages(pages: str) -> List[int]:
-    """Parse ``'5-7'``, ``'3,8'``, or ``'12'`` → sorted list of ints."""
+    """Parse ``'5-7'``, ``'3,8'``, or ``'12'`` → sorted list of positive ints.
+
+    Raises ``ValueError`` on malformed input, reversed ranges, or non-positive
+    page numbers.
+    """
     result: List[int] = []
     for part in pages.split(","):
         part = part.strip()
         if not part:
             continue
         if "-" in part:
-            start, end = part.split("-", 1)
-            s, e = int(start.strip()), int(end.strip())
+            raw_start, raw_end = part.split("-", 1)
+            raw_start, raw_end = raw_start.strip(), raw_end.strip()
+            if not raw_start or not raw_end:
+                raise ValueError(f"Malformed range '{part}' — both start and end are required")
+            s, e = int(raw_start), int(raw_end)
+            if s < 1 or e < 1:
+                raise ValueError(f"Page numbers must be >= 1, got '{part}'")
             if s > e:
-                raise ValueError(f"Invalid range '{part}'")
+                raise ValueError(f"Invalid range '{part}' — start must be <= end")
             result.extend(range(s, e + 1))
         else:
-            result.append(int(part))
+            n = int(part)
+            if n < 1:
+                raise ValueError(f"Page number must be >= 1, got {n}")
+            result.append(n)
     return sorted(set(result))
 
 
@@ -121,6 +136,15 @@ class PageIndexStore:
             page_nums = _parse_pages(pages)
         except (ValueError, AttributeError) as exc:
             return json.dumps({"error": f"Invalid pages={pages!r}: {exc}"})
+        if len(page_nums) > _MAX_PAGES_PER_REQUEST:
+            return json.dumps(
+                {
+                    "error": (
+                        f"Too many pages requested ({len(page_nums)}). "
+                        f"Maximum is {_MAX_PAGES_PER_REQUEST} per call."
+                    )
+                }
+            )
         pm = self._ensure_pages()
         out: List[Dict[str, Any]] = []
         for pn in page_nums:
@@ -146,7 +170,8 @@ class PageIndexStore:
         pm = self._ensure_pages()
         for pn, page in pm.items():
             if page["filepath"] == filepath:
-                return json.dumps({"page": pn, **page}, ensure_ascii=False)
+                # page dict already contains the "page" key; return it directly.
+                return json.dumps(page, ensure_ascii=False)
         matches = [
             {"page": pn, "filepath": pg["filepath"]}
             for pn, pg in pm.items()
@@ -154,13 +179,13 @@ class PageIndexStore:
         ]
         if len(matches) == 1:
             pg = pm[matches[0]["page"]]
-            return json.dumps({"page": matches[0]["page"], **pg}, ensure_ascii=False)
+            return json.dumps(pg, ensure_ascii=False)
         if matches:
             return json.dumps({"error": f"Multiple matches for {filepath!r}", "suggestions": matches[:10]})
         return json.dumps({"error": f"File not found: {filepath}"})
 
     def list_pages(self) -> str:
-        if self._page_map:
+        if self._page_map is not None:
             return json.dumps(
                 [{"page": k, "filepath": v} for k, v in sorted(self._page_map.items())],
                 indent=2,

@@ -14,6 +14,7 @@ import queue
 import re
 import threading
 import time
+import uuid
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,7 +42,7 @@ from ingest.runtime.embeddings import (
     resolve_embed_ingest_settings,
     run_async_embedding_batches,
 )
-from ingest.core.file_utils import read_file_bytes
+from ingest.core.file_utils import file_md5, read_file_bytes
 from ingest.sources.git_files import (
     _path_matches_any_nested_gitignore,
     _respect_gitignore,

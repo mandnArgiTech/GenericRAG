@@ -163,8 +163,8 @@ def build_doc_page_index(
         raise ValueError(f"Not a directory: {chapters_dir}")
 
     md_files = sorted(
-        (f for f in base.iterdir() if f.suffix.lower() in MARKDOWN_EXTENSIONS),
-        key=lambda f: f.name,
+        (f for f in base.rglob("*") if f.is_file() and f.suffix.lower() in MARKDOWN_EXTENSIONS),
+        key=lambda f: f.relative_to(base).as_posix(),
     )
     if not md_files:
         raise ValueError(f"No markdown files in {chapters_dir}")
@@ -264,8 +264,15 @@ def build_doc_page_index(
 
 
 def save_doc_index(index: Dict[str, Any], output_dir: str) -> None:
-    """Persist doc PageIndex. Writes the same files as ``save_index`` plus ``cross_references.json``."""
-    save_index(index, output_dir)
+    """Persist doc PageIndex. Writes the same files as ``save_index`` plus ``cross_references.json``.
+
+    ``cross_references`` is written to its own file only; it is excluded from
+    ``structure.json`` to avoid bloating that file for large codebases.
+    """
+    # Strip cross_references before delegating so save_index only writes
+    # structure.json / pages.json / page_map.json (no duplicate data).
+    slim = {k: v for k, v in index.items() if k != "cross_references"}
+    save_index(slim, output_dir)
     xref_path = Path(output_dir) / "cross_references.json"
     with open(xref_path, "w", encoding="utf-8") as fh:
         json.dump(index.get("cross_references", {}), fh, indent=2)
