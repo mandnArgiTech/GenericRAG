@@ -55,6 +55,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
             "theory",
             "community",
             "status",
+            "pageindex-code",
+            "pageindex-docs",
         ],
         default=os.environ.get("INGEST_MODE", "").strip() or None,
     )
@@ -107,6 +109,30 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Git ref to diff against (default: last stored ingest ref or HEAD~1)",
     )
     p.add_argument("--verbose", action="store_true")
+    # ------------------------------------------------------------------
+    # PageIndex (vectorless) layer — parallel to Chroma modes above.
+    # ------------------------------------------------------------------
+    p.add_argument(
+        "--pageindex-dir",
+        default=os.environ.get("PAGEINDEX_DIR", "").strip() or None,
+        help="Output directory for the PageIndex artefacts (structure.json, pages.json).",
+    )
+    p.add_argument(
+        "--pageindex-code-dir",
+        default=os.environ.get("PAGEINDEX_CODE_DIR", "").strip() or None,
+        help="Path to an existing code PageIndex; when set with --mode pageindex-docs,"
+        " the doc builder links chapters to code files via function-name lookup.",
+    )
+    p.add_argument(
+        "--pageindex-llm-summaries",
+        action="store_true",
+        help="Generate per-node summaries via --pageindex-summary-model (requires langchain_ollama).",
+    )
+    p.add_argument(
+        "--pageindex-summary-model",
+        default=os.environ.get("PAGEINDEX_SUMMARY_MODEL", "smollm2:1.7b"),
+        help="Ollama model name used for PageIndex summaries when --pageindex-llm-summaries is set.",
+    )
     return p
 
 
@@ -250,6 +276,46 @@ def feed_domain_document(
     }
 
 
+def _run_pageindex_code(args: argparse.Namespace) -> int:
+    """Build a code PageIndex from ``args.source`` into ``args.pageindex_dir``."""
+    from ingest.pageindex import build_code_page_index, save_index
+
+    out_dir = args.pageindex_dir or str(Path(args.db_path).parent / "PageIndex" / "code")
+    src = args.source or os.environ.get("SOURCE_FOLDER")
+    if not src:
+        raise SystemExit("pageindex-code requires --source")
+    index = build_code_page_index(
+        src,
+        use_llm_summaries=bool(args.pageindex_llm_summaries),
+        summary_model=args.pageindex_summary_model,
+    )
+    save_index(index, out_dir)
+    print(f"[pageindex-code] Saved {index['total_pages']} pages → {out_dir}")
+    return 0
+
+
+def _run_pageindex_docs(args: argparse.Namespace) -> int:
+    """Build a doc PageIndex from ``args.source`` (markdown chapters)."""
+    from ingest.pageindex.doc_index import build_doc_page_index, save_doc_index
+
+    out_dir = args.pageindex_dir or str(Path(args.db_path).parent / "PageIndex" / "docs")
+    src = args.source or os.environ.get("SOURCE_FOLDER")
+    if not src:
+        raise SystemExit("pageindex-docs requires --source")
+    index = build_doc_page_index(
+        src,
+        code_index_dir=args.pageindex_code_dir,
+        use_llm_summaries=bool(args.pageindex_llm_summaries),
+        summary_model=args.pageindex_summary_model,
+    )
+    save_doc_index(index, out_dir)
+    print(
+        f"[pageindex-docs] Saved {index['total_pages']} chapters, "
+        f"{index.get('total_cross_references', 0)} cross-refs → {out_dir}"
+    )
+    return 0
+
+
 def main(argv: Optional[List[str]] = None) -> int:
     signal.signal(signal.SIGINT, _handle_sig)
     signal.signal(signal.SIGTERM, _handle_sig)
@@ -264,4 +330,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.mode != "status":
         if args.mode not in ("rally", "wiki") and not args.source and not os.environ.get("SOURCE_FOLDER"):
             parser.error("--source required for this mode (or set SOURCE_FOLDER)")  # pragma: no cover
+    # PageIndex modes bypass Chroma ingestion entirely.
+    if args.mode == "pageindex-code":
+        return _run_pageindex_code(args)
+    if args.mode == "pageindex-docs":
+        return _run_pageindex_docs(args)
     return ingest_run(args)

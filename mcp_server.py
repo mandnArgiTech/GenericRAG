@@ -44,6 +44,7 @@ from hybrid_search import (
     stable_doc_id,
 )
 from ingest import iter_concept_ids
+from ingest.pageindex import PageIndexStore
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -102,6 +103,14 @@ RRF_K = float(os.environ.get("RRF_K", "60"))
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_LOG = os.path.join(SCRIPT_DIR, "mcp_server.log")
 LOG_FILE = os.environ.get("MCP_LOG", "") or DEFAULT_LOG
+
+# PageIndex (vectorless) layer — artefacts produced by ``python -m ingest --mode pageindex-*``.
+PAGEINDEX_CODE_DIR = os.environ.get(
+    "PAGEINDEX_CODE_DIR", os.path.join(os.path.dirname(DB_PATH) or ".", "PageIndex", "code")
+)
+PAGEINDEX_DOCS_DIR = os.environ.get(
+    "PAGEINDEX_DOCS_DIR", os.path.join(os.path.dirname(DB_PATH) or ".", "PageIndex", "docs")
+)
 
 # ---------------------------------------------------------------------------
 # Logging — file only
@@ -1026,6 +1035,117 @@ async def get_db_stats() -> str:
     if ctype_hits:
         lines.append("**Content types (sample):** " + ", ".join(f"{k}={v}" for k, v in sorted(ctype_hits.items())))
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# PageIndex (vectorless) tools — reasoning-based retrieval over a pre-built
+# tree index. Complements the Chroma-backed tools above.
+# Build artefacts first:
+#   python -m ingest --mode pageindex-code --source <src> --pageindex-dir <out>
+#   python -m ingest --mode pageindex-docs --source <chapters> --pageindex-dir <out> \
+#          --pageindex-code-dir <code_out>   # adds doc→code cross-references
+# ---------------------------------------------------------------------------
+
+_pi_code_store: Optional[PageIndexStore] = None
+_pi_docs_store: Optional[PageIndexStore] = None
+
+
+def _get_pi_code() -> PageIndexStore:
+    global _pi_code_store
+    if _pi_code_store is None:
+        _pi_code_store = PageIndexStore(PAGEINDEX_CODE_DIR)
+    return _pi_code_store
+
+
+def _get_pi_docs() -> PageIndexStore:
+    global _pi_docs_store
+    if _pi_docs_store is None:
+        _pi_docs_store = PageIndexStore(PAGEINDEX_DOCS_DIR)
+    return _pi_docs_store
+
+
+@mcp.tool()
+async def get_code_document() -> str:
+    """PageIndex (code): document metadata for the source-code PageIndex."""
+    logger.info("get_code_document")
+    try:
+        return _get_pi_code().get_document()
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
+
+
+@mcp.tool()
+async def get_code_structure(include_metadata: bool = True) -> str:
+    """PageIndex (code): hierarchical tree (directory → file → functions/structs).
+
+    Read this tree to reason about which pages (files) contain the code you need,
+    then call ``get_code_pages`` with the matching page numbers.
+    """
+    logger.info("get_code_structure include_metadata=%s", include_metadata)
+    try:
+        return _get_pi_code().get_document_structure(include_metadata=include_metadata)
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
+
+
+@mcp.tool()
+async def get_code_pages(pages: str) -> str:
+    """PageIndex (code): retrieve full source-file content by page numbers (``'5-7'``, ``'3,8'``)."""
+    logger.info("get_code_pages pages=%s", pages)
+    try:
+        return _get_pi_code().get_page_content(pages)
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
+
+
+@mcp.tool()
+async def get_code_by_filepath(filepath: str) -> str:
+    """PageIndex (code): retrieve a specific source file by exact or partial filepath match."""
+    logger.info("get_code_by_filepath filepath=%s", filepath)
+    try:
+        return _get_pi_code().get_page_by_filepath(filepath)
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
+
+
+@mcp.tool()
+async def pageindex_find_function(function_name: str) -> str:
+    """PageIndex (code): locate a C function by name using tree metadata (zero similarity search)."""
+    logger.info("pageindex_find_function name=%s", function_name)
+    try:
+        return _get_pi_code().find_function(function_name)
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
+
+
+@mcp.tool()
+async def get_doc_structure(include_metadata: bool = True) -> str:
+    """PageIndex (docs): hierarchical tree for documentation chapters, with code cross-refs."""
+    logger.info("get_doc_structure include_metadata=%s", include_metadata)
+    try:
+        return _get_pi_docs().get_document_structure(include_metadata=include_metadata)
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
+
+
+@mcp.tool()
+async def get_doc_pages(pages: str) -> str:
+    """PageIndex (docs): retrieve full chapter text by page numbers."""
+    logger.info("get_doc_pages pages=%s", pages)
+    try:
+        return _get_pi_docs().get_page_content(pages)
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
+
+
+@mcp.tool()
+async def pageindex_chapters_for_function(function_name: str) -> str:
+    """PageIndex (docs): find which doc chapters reference ``function_name`` (doc↔code bridge)."""
+    logger.info("pageindex_chapters_for_function name=%s", function_name)
+    try:
+        return _get_pi_docs().find_chapters_for_function(function_name)
+    except FileNotFoundError as exc:
+        return f"Error: {exc}"
 
 
 if __name__ == "__main__":
