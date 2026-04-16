@@ -1,0 +1,51 @@
+# Role
+You are an expert Data Engineer and AI Architect. Your task is to write a Python parsing engine that chunks a complete suite of IETF Networking RFCs into a highly structured RAG vector database. 
+
+# Context & Inputs
+The RAG database will be consumed exclusively by small autonomous coding LLMs (1.5B to 14B parameters, like Phi-4 or Qwen-Coder) tasked with writing a C/C++ TCP/IP stack from scratch. The chunks MUST be formatted to prevent C-struct hallucination, endianness errors, and state-machine confusion.
+
+You must write a script that processes files based on a local manifest.
+- **Base Directory:** `/home/deviprasad/GIT/POC/tcp_ip_stack_rfcs`
+- **Manifest File:** `/home/deviprasad/GIT/POC/download_manifest.json`
+The script should load the manifest, iterate through the `entries`, and open each `.txt` file using the `relative_path` appended to the Base Directory.
+
+# Required Parsing Directives (The Regex Rules)
+
+Write the Python script using `re` and text-processing techniques to apply the following context-aware chunking rules to every RFC:
+
+## 1. Absolute Context Lineage
+Small models suffer from context fragmentation. Every single chunk must be injected with an absolute hierarchy string at the very beginning, deriving context from the RFC text headers AND the manifest data.
+- *Example:* `[Layer: Network_Layer_(IPv4)] -> [Protocol: ARP (RFC 826)] -> [Section: Packet Format] -> [Field: Hardware Type]`
+
+## 2. ASCII Diagram to C-Struct Translation (CRITICAL)
+When the parser encounters an ASCII packet diagram (e.g., lines starting with `+--+--+--+` or containing `| Code | Identifier |`), it must group the diagram AND the immediate descriptive text below it into a single chunk.
+- **Tag:** `struct_definition`
+- **Rule:** Never split byte/bit descriptions from the diagram. The coding agent needs exact byte alignments.
+
+## 3. Constant and Macro Isolation
+Network stacks rely heavily on magic numbers (e.g., EtherType 0x0806, Protocol 0xC021).
+- **Tag:** `constants_definitions`
+- **Rule:** The parser must identify lists of op-codes, protocol IDs, or message types, and chunk them together so the coder agent can easily generate C `#define` or `enum` blocks.
+
+## 4. State Machine Flattening
+For protocols with state machines (like TCP in RFC 9293 or PPP in RFC 1661), prose is dangerous. 
+- **Tag:** `state_logic`
+- **Rule:** Isolate state transition descriptions. Ensure that the Event, Condition, Action, and Next State are kept strictly together in one atomic chunk. Do not split a state description horizontally.
+
+## 5. Agent-Optimized JSON Schema
+The script must output the chunks into a unified JSON array (or JSONL file) using the following strictly formatted schema. This schema guarantees the coding agent gets the context it needs without searching.
+
+```json
+{
+  "layer": "<Extracted from manifest 'layer_folder'>",
+  "rfc_number": "<Extracted from manifest 'rfc_number'>",
+  "protocol_name": "<Extracted from manifest 'protocol'>",
+  "hierarchical_path": "RFC ### > Section Title > Subsection",
+  "chunk_type": "struct_definition" | "state_logic" | "constants" | "implementation_rule" | "prose",
+  "c_implementation_hints": {
+    "requires_network_byte_order": true,
+    "byte_alignment_warning": "Populate if text mentions 16-bit or 32-bit alignment boundaries"
+  },
+  "content": "<Raw preserved RFC text and ASCII diagrams>",
+  "dependencies": ["List any referenced RFCs or sections found in the text, e.g., 'Requires RFC 1122'"]
+}

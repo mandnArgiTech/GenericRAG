@@ -1,0 +1,162 @@
+{
+  "generated_at_utc": "2026-04-16",
+  "json_source": "/home/deviprasad/GIT/POC/tcp_ip_stack_rfc_guide.json",
+  "out_dir": "/home/deviprasad/GIT/POC/tcp_ip_stack_rfcs",
+  "ok_or_skipped": 15,
+  "failed": 0,
+  "entries": [
+    {
+      "layer_folder": "Foundation_and_Host_Requirements",
+      "rfc_number": 1122,
+      "rfc_label": "RFC 1122",
+      "protocol": "Host Requirements",
+      "url": "https://www.rfc-editor.org/rfc/rfc1122.txt",
+      "relative_path": "Foundation_and_Host_Requirements/rfc1122.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "ok",
+      "bytes": 289148
+    },
+    {
+      "layer_folder": "Data_Link_Layer",
+      "rfc_number": 1661,
+      "rfc_label": "RFC 1661",
+      "protocol": "PPP",
+      "url": "https://www.rfc-editor.org/rfc/rfc1661.txt",
+      "relative_path": "Data_Link_Layer/rfc1661.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Data_Link_Layer",
+      "rfc_number": 1662,
+      "rfc_label": "RFC 1662",
+      "protocol": "PPP HDLC",
+      "url": "https://www.rfc-editor.org/rfc/rfc1662.txt",
+      "relative_path": "Data_Link_Layer/rfc1662.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Data_Link_Layer",
+      "rfc_number": 1332,
+      "rfc_label": "RFC 1332",
+      "protocol": "IPCP",
+      "url": "https://www.rfc-editor.org/rfc/rfc1332.txt",
+      "relative_path": "Data_Link_Layer/rfc1332.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Network_Layer_(IPv4)",
+      "rfc_number": 826,
+      "rfc_label": "RFC 826",
+      "protocol": "ARP",
+      "url": "https://www.rfc-editor.org/rfc/rfc826.txt",
+      "relative_path": "Network_Layer_(IPv4)/rfc826.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Network_Layer_(IPv4)",
+      "rfc_number": 791,
+      "rfc_label": "RFC 791",
+      "protocol": "IPv4",
+      "url": "https://www.rfc-editor.org/rfc/rfc791.txt",
+      "relative_path": "Network_Layer_(IPv4)/rfc791.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Network_Layer_(IPv4)",
+      "rfc_number": 792,
+      "rfc_label": "RFC 792",
+      "protocol": "ICMP",
+      "url": "https://www.rfc-editor.org/rfc/rfc792.txt",
+      "relative_path": "Network_Layer_(IPv4)/rfc792.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Transport_Layer",
+      "rfc_number": 768,
+      "rfc_label": "RFC 768",
+      "protocol": "UDP",
+      "url": "https://www.rfc-editor.org/rfc/rfc768.txt",
+      "relative_path": "Transport_Layer/rfc768.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Transport_Layer",
+      "rfc_number": 9293,
+      "rfc_label": "RFC 9293",
+      "protocol": "TCP",
+      "url": "https://www.rfc-editor.org/rfc/rfc9293.txt",
+      "relative_path": "Transport_Layer/rfc9293.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Infrastructure_and_Application_Support",
+      "rfc_number": 2131,
+      "rfc_label": "RFC 2131",
+      "protocol": "DHCP",
+      "url": "https://www.rfc-editor.org/rfc/rfc2131.txt",
+      "relative_path": "Infrastructure_and_Application_Support/rfc2131.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "ok",
+      "bytes": 113738
+    },
+    {
+      "layer_folder": "Infrastructure_and_Application_Support",
+      "rfc_number": 1035,
+      "rfc_label": "RFC 1035",
+      "protocol": "DNS",
+      "url": "https://www.rfc-editor.org/rfc/rfc1035.txt",
+      "relative_path": "Infrastructure_and_Application_Support/rfc1035.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "ok",
+      "bytes": 122549
+    },
+    {
+      "layer_folder": "Next-Generation_Network_Layer_(IPv6)",
+      "rfc_number": 8200,
+      "rfc_label": "RFC 8200",
+      "protocol": "IPv6",
+      "url": "https://www.rfc-editor.org/rfc/rfc8200.txt",
+      "relative_path": "Next-Generation_Network_Layer_(IPv6)/rfc8200.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Next-Generation_Network_Layer_(IPv6)",
+      "rfc_number": 4443,
+      "rfc_label": "RFC 4443",
+      "protocol": "ICMPv6",
+      "url": "https://www.rfc-editor.org/rfc/rfc4443.txt",
+      "relative_path": "Next-Generation_Network_Layer_(IPv6)/rfc4443.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Next-Generation_Network_Layer_(IPv6)",
+      "rfc_number": 4861,
+      "rfc_label": "RFC 4861",
+      "protocol": "NDP",
+      "url": "https://www.rfc-editor.org/rfc/rfc4861.txt",
+      "relative_path": "Next-Generation_Network_Layer_(IPv6)/rfc4861.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    },
+    {
+      "layer_folder": "Next-Generation_Network_Layer_(IPv6)",
+      "rfc_number": 4862,
+      "rfc_label": "RFC 4862",
+      "protocol": "SLAAC",
+      "url": "https://www.rfc-editor.org/rfc/rfc4862.txt",
+      "relative_path": "Next-Generation_Network_Layer_(IPv6)/rfc4862.txt",
+      "fetched_at_utc": "2026-04-16",
+      "status": "skipped_exists"
+    }
+  ]
+}

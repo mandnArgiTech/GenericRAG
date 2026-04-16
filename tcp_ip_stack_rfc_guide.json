@@ -1,0 +1,148 @@
+{
+    "tcp_ip_stack_guide": {
+        "context": "Core RFCs required for building a modern, lightweight TCP/IP stack (similar to lwIP).",
+        "architecture_layers": [
+            {
+                "layer": "Foundation & Host Requirements",
+                "description": "General requirements and behavioral rules for modern IP hosts.",
+                "protocols": [
+                    {
+                        "rfc": "RFC 1122",
+                        "protocol": "Host Requirements",
+                        "title": "Requirements for Internet Hosts - Communication Layers",
+                        "importance": "Critical",
+                        "notes": "Acts as the definitive rulebook. Overrides older original RFCs if conflicts exist."
+                    }
+                ]
+            },
+            {
+                "layer": "Data Link Layer",
+                "description": "Protocols for establishing physical/logical links, specifically for serial and cellular connections.",
+                "protocols": [
+                    {
+                        "rfc": "RFC 1661",
+                        "protocol": "PPP",
+                        "title": "The Point-to-Point Protocol (PPP)",
+                        "importance": "High (for serial/modem links)",
+                        "notes": "The core state machine for opening and testing serial connections."
+                    },
+                    {
+                        "rfc": "RFC 1662",
+                        "protocol": "PPP HDLC",
+                        "title": "PPP in HDLC-like Framing",
+                        "importance": "High",
+                        "notes": "Defines how to wrap IP packets in byte sequences for raw serial transmission."
+                    },
+                    {
+                        "rfc": "RFC 1332",
+                        "protocol": "IPCP",
+                        "title": "The PPP Internet Protocol Control Protocol (IPCP)",
+                        "importance": "High",
+                        "notes": "Handles IP address negotiation over a PPP serial link."
+                    }
+                ]
+            },
+            {
+                "layer": "Network Layer (IPv4)",
+                "description": "Protocols for local network discovery, routing, and basic diagnostics.",
+                "protocols": [
+                    {
+                        "rfc": "RFC 826",
+                        "protocol": "ARP",
+                        "title": "An Ethernet Address Resolution Protocol",
+                        "importance": "Critical (for Ethernet)",
+                        "notes": "Translates IPv4 addresses to hardware MAC addresses."
+                    },
+                    {
+                        "rfc": "RFC 791",
+                        "protocol": "IPv4",
+                        "title": "Internet Protocol",
+                        "importance": "Critical",
+                        "notes": "Core routing, header parsing, and checksum verification."
+                    },
+                    {
+                        "rfc": "RFC 792",
+                        "protocol": "ICMP",
+                        "title": "Internet Control Message Protocol",
+                        "importance": "High",
+                        "notes": "Required for basic diagnostic responses like Echo Request/Reply (ping)."
+                    }
+                ]
+            },
+            {
+                "layer": "Transport Layer",
+                "description": "Protocols handling end-to-end data movement and port multiplexing.",
+                "protocols": [
+                    {
+                        "rfc": "RFC 768",
+                        "protocol": "UDP",
+                        "title": "User Datagram Protocol",
+                        "importance": "Critical",
+                        "notes": "Lightweight, connectionless transport. Adds ports to IP routing."
+                    },
+                    {
+                        "rfc": "RFC 9293",
+                        "protocol": "TCP",
+                        "title": "Transmission Control Protocol",
+                        "importance": "Critical",
+                        "notes": "The modern, consolidated TCP specification (obsoletes RFC 793). Contains the core state machine, windowing, and congestion control."
+                    }
+                ]
+            },
+            {
+                "layer": "Infrastructure & Application Support",
+                "description": "Protocols for behaving as a dynamic citizen on a network.",
+                "protocols": [
+                    {
+                        "rfc": "RFC 2131",
+                        "protocol": "DHCP",
+                        "title": "Dynamic Host Configuration Protocol",
+                        "importance": "High",
+                        "notes": "Required for dynamic IP allocation on Ethernet/Wi-Fi networks."
+                    },
+                    {
+                        "rfc": "RFC 1035",
+                        "protocol": "DNS",
+                        "title": "Domain Names - Implementation and Specification",
+                        "importance": "Medium",
+                        "notes": "Requires at least a 'Stub Resolver' implementation to convert URLs to IPs via UDP."
+                    }
+                ]
+            },
+            {
+                "layer": "Next-Generation Network Layer (IPv6)",
+                "description": "The modern IP stack, replacing ARP with NDP and integrating ICMP deeply.",
+                "protocols": [
+                    {
+                        "rfc": "RFC 8200",
+                        "protocol": "IPv6",
+                        "title": "Internet Protocol, Version 6 (IPv6) Specification",
+                        "importance": "Medium (Future-proofing)",
+                        "notes": "The core IPv6 specification, obsoleting RFC 2460."
+                    },
+                    {
+                        "rfc": "RFC 4443",
+                        "protocol": "ICMPv6",
+                        "title": "Internet Control Message Protocol (ICMPv6) for IPv6",
+                        "importance": "High (if doing IPv6)",
+                        "notes": "Core control messaging for IPv6."
+                    },
+                    {
+                        "rfc": "RFC 4861",
+                        "protocol": "NDP",
+                        "title": "Neighbor Discovery for IP version 6 (IPv6)",
+                        "importance": "High (if doing IPv6)",
+                        "notes": "Replaces ARP. Handles router and neighbor discovery."
+                    },
+                    {
+                        "rfc": "RFC 4862",
+                        "protocol": "SLAAC",
+                        "title": "IPv6 Stateless Address Autoconfiguration",
+                        "importance": "Medium",
+                        "notes": "Allows devices to self-assign IPv6 addresses without a DHCP server."
+                    }
+                ]
+            }
+        ]
+    }
+}

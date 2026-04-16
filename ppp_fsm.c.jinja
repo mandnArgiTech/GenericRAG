@@ -1,0 +1,67 @@
+/*
+ * PPP LCP finite-state machine skeleton (RFC 1661 Section 4).
+ * Machine-generated regions are injected from ppp_fsm.c.jinja via orchestrator/fsm_code_generator.py.
+ */
+#include <stdint.h>
+#include <stdbool.h>
+
+typedef enum {
+    PPP_STATE_INITIAL = 0,
+    PPP_STATE_STARTING,
+    PPP_STATE_CLOSED,
+    PPP_STATE_STOPPED,
+    PPP_STATE_CLOSING,
+    PPP_STATE_STOPPING,
+    PPP_STATE_REQ_SENT,
+    PPP_STATE_ACK_RCVD,
+    PPP_STATE_ACK_SENT,
+    PPP_STATE_OPENED,
+} ppp_state_t;
+
+typedef enum {
+    PPP_EVENT_UP = 0,
+    PPP_EVENT_DOWN,
+    PPP_EVENT_OPEN,
+    PPP_EVENT_CLOSE,
+    PPP_EVENT_TO_PLUS,
+    PPP_EVENT_TO_MINUS,
+    PPP_EVENT_RCR_PLUS,
+    PPP_EVENT_RCR_MINUS,
+    PPP_EVENT_RCA,
+    PPP_EVENT_RCN,
+    PPP_EVENT_RTR,
+    PPP_EVENT_RTA,
+    PPP_EVENT_RUC,
+    PPP_EVENT_RXJ_PLUS,
+    PPP_EVENT_RXJ_MINUS,
+    PPP_EVENT_RXR,
+} ppp_event_t;
+
+typedef struct ppp_context {
+    ppp_state_t state;
+    uint8_t restart_count;
+    uint8_t max_configure;
+    uint8_t max_terminate;
+    uint16_t magic; /* placeholder; extend with counters / buffers as needed */
+} ppp_context_t;
+
+void ppp_handle_event(ppp_context_t *ctx, ppp_event_t event)
+{
+    if (!ctx) {
+        return;
+    }
+    switch (ctx->state) {
+{% for st in state_order %}
+        case {{ st }}:
+            switch (event) {
+{{ state_case_blocks[st] | default('                (void)event;\n                break;', true) }}
+                default:
+                    (void)event;
+                    break;
+            }
+            break;
+{% endfor %}
+        default:
+            break;
+    }
+}

@@ -1,0 +1,58 @@
+# DomainRAG — dependencies derived from sanitizer.py, ingest/ package, mcp_server.py
+# Runtime: Ollama must be available for embeddings (local HTTP :11434).
+# Python 3.10+ recommended.
+
+# PPP FSM code generator (orchestrator/fsm_code_generator.py; root fsm_orchestrator.py CLI shim): Jinja2 C synthesis
+Jinja2>=3.1.0
+
+# Vector database + LangChain vector store / embeddings (ingest/, mcp_server.py)
+chromadb>=0.4.22
+langchain-chroma>=0.1.2
+langchain-ollama>=0.1.0
+langchain-text-splitters>=0.2.0
+
+# Progress UI (ingest CLI: python -m ingest)
+tqdm>=4.66.0
+
+# MCP server: FastMCP, stdio transport (mcp_server.py)
+mcp>=1.0.0
+
+# Rally API and Confluence wiki fetch modes (ingest package); optional at import time but required for those modes
+requests>=2.28.0
+
+# HTML → text for tickets/wiki paths (ingest package); optional at import time
+beautifulsoup4>=4.12.0
+
+# ---------------------------------------------------------------------------
+# Optional — finer code chunking for C / C++ / Java (ingest package).
+# Not required: ingest falls back to language_split or generic_split.
+#   pip install tree-sitter tree-sitter-c tree-sitter-cpp tree-sitter-java
+# Scheme (.scm) uses regex fallback if tree_sitter_scheme is unavailable.
+# Hybrid search — BM25 sidecar index (hybrid_search.py, mcp_server.py)
+rank-bm25>=0.2.2
+
+# query.py CLI: terminal UX + optional Ollama chat
+rich>=13.0.0
+ollama>=0.3.0
+
+# Enterprise dashboard (gui_backend.py)
+fastapi>=0.115.0
+python-multipart>=0.0.9
+uvicorn[standard]>=0.30.0
+anthropic>=0.40.0
+openai>=1.40.0
+
+# Enterprise ingest: async Ollama /api/embed, .gitignore matching (ingest package)
+aiohttp>=3.9.0
+pathspec>=0.12.0
+
+# Agent web search (agent_tools.py): prefer ddgs; duckduckgo-search is fallback
+ddgs>=8.0.0
+duckduckgo-search>=7.0.0
+
+# Vision-augmented PDF parsing (util/universal_vision_parser.py + dashboard tab)
+docling>=2.0.0
+Pillow>=10.0.0
+
+# crewai/ngspice_book_factory.py — optional YAML config (--config)
+PyYAML>=6.0.1
