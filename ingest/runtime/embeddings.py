@@ -10,18 +10,19 @@ import logging
 import os
 import queue
 import subprocess
+import sys
 import threading
 import time
 import urllib.error
 import urllib.request
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import TimeoutError as FuturesTimeoutError
-from typing import Any, List, Optional, Tuple
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 from langchain_ollama import OllamaEmbeddings
 
 from ingest.core.constants import EMBED_BACKOFF_SEC, MAX_RETRIES
 from ingest.core.deps import aiohttp
+from ingest.core.state import _embed_lock
 
 logger = logging.getLogger("ingest")
 

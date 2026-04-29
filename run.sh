@@ -25,11 +25,15 @@ WORKERS=2
 GIT_DIFF=0
 GIT_DIFF_BASE=""
 CONCEPT_REGISTRY=""
+PAGEINDEX_DIR=""
+PAGEINDEX_CODE_DIR=""
+PAGEINDEX_LLM_SUMMARIES=0
+PAGEINDEX_SUMMARY_MODEL=""
 
 usage() {
   echo "Usage: $0 [options]"
   echo "  --model NAME              Embedding model (default: nomic-embed-text)"
-  echo "  --mode MODE               code|domain|rfc|rally|customer|mib|wiki|release-notes|theory|community|status"
+  echo "  --mode MODE               code|domain|rfc|rally|customer|mib|wiki|release-notes|theory|community|status|pageindex-code|pageindex-docs"
   echo "  --domain NAME             default: general"
   echo "  --collection NAME         optional Chroma collection override"
   echo "  --rally-project NAME"
@@ -43,6 +47,10 @@ usage() {
   echo "  --git-diff                Only ingest git-changed files vs base ref"
   echo "  --git-diff-base REF       Git ref to diff against"
   echo "  --concept-registry PATH   Path to concept_registry.json"
+  echo "  --pageindex-dir PATH      Output dir for pageindex-code / pageindex-docs modes"
+  echo "  --pageindex-code-dir PATH Existing code PageIndex to link from docs (pageindex-docs only)"
+  echo "  --pageindex-llm-summaries Enable LLM summaries (requires Ollama model)"
+  echo "  --pageindex-summary-model MODEL  Ollama summary model (default: smollm2:1.7b)"
   echo "  --mib-keep-deprecated"
   echo "  --dry-run  --force  --clean-stale  --recreate-collection  --verbose"
   exit 0
@@ -70,6 +78,10 @@ while [[ $# -gt 0 ]]; do
     --git-diff) GIT_DIFF=1; shift ;;
     --git-diff-base) GIT_DIFF_BASE="${2:-}"; shift 2 ;;
     --concept-registry) CONCEPT_REGISTRY="${2:-}"; shift 2 ;;
+    --pageindex-dir) PAGEINDEX_DIR="${2:-}"; shift 2 ;;
+    --pageindex-code-dir) PAGEINDEX_CODE_DIR="${2:-}"; shift 2 ;;
+    --pageindex-llm-summaries) PAGEINDEX_LLM_SUMMARIES=1; shift ;;
+    --pageindex-summary-model) PAGEINDEX_SUMMARY_MODEL="${2:-}"; shift 2 ;;
     --verbose) VERBOSE=1; shift ;;
     -h|--help) usage ;;
     *) echo "Unknown option: $1" >&2; exit 2 ;;
@@ -252,6 +264,10 @@ fi
 [[ "$GIT_DIFF" -eq 1 ]] && INGEST_ARGS+=( --git-diff )
 [[ -n "$GIT_DIFF_BASE" ]] && INGEST_ARGS+=( --git-diff-base "$GIT_DIFF_BASE" )
 [[ -n "$CONCEPT_REGISTRY" ]] && INGEST_ARGS+=( --concept-registry "$CONCEPT_REGISTRY" )
+[[ -n "$PAGEINDEX_DIR" ]] && INGEST_ARGS+=( --pageindex-dir "$PAGEINDEX_DIR" )
+[[ -n "$PAGEINDEX_CODE_DIR" ]] && INGEST_ARGS+=( --pageindex-code-dir "$PAGEINDEX_CODE_DIR" )
+[[ "$PAGEINDEX_LLM_SUMMARIES" -eq 1 ]] && INGEST_ARGS+=( --pageindex-llm-summaries )
+[[ -n "$PAGEINDEX_SUMMARY_MODEL" ]] && INGEST_ARGS+=( --pageindex-summary-model "$PAGEINDEX_SUMMARY_MODEL" )
 [[ "$VERBOSE" -eq 1 ]] && INGEST_ARGS+=( --verbose )
 
 cleanup_ollama() {
@@ -287,4 +303,6 @@ echo "   ./run.sh --mode code --model mxbai-embed-large"
 echo "   ./run.sh --mode domain --domain nms --source \"$BASE_DIR/DomainDocs\""
 echo "   ./run.sh --mode status"
 echo "   ./run.sh --mode mib --domain nms --source \"$BASE_DIR/MIBs\""
+echo "   ./run.sh --mode pageindex-code --source \"$BASE_DIR/Codebase/ngspice/src\" --pageindex-dir \"$BASE_DIR/PageIndex/code\""
+echo "   ./run.sh --mode pageindex-docs --source \"$BASE_DIR/DomainDocs/chapters\" --pageindex-dir \"$BASE_DIR/PageIndex/docs\" --pageindex-code-dir \"$BASE_DIR/PageIndex/code\""
 echo ""
